@@ -34,3 +34,26 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+// 以下でテストを書く
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::GenericImageView;
+
+    #[test]
+    fn test_generate_qr_image() {
+        // テストする文字列
+        let text = "Hello, world!";
+        // QRコードを生成
+        let image_data = generate_qr_image(text);
+        // 生成された画像がPNGフォーマットであることを確認
+        assert_eq!(image_data[..4], [137, 80, 78, 71]);
+        // 生成された画像が正しいサイズであることを確認
+        let image = image::load_from_memory(&image_data).unwrap();
+        let expected_size = QrCode::encode_binary(&text.as_bytes(), QrCodeEcc::Low)
+            .unwrap()
+            .size() as u32;
+        assert_eq!(image.dimensions(), (expected_size, expected_size));
+    }
+}
